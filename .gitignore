@@ -1,0 +1,20 @@
+# Security / Environment Variables
+.env
+
+# Virtual Environments
+venv/
+env/
+.venv/
+
+# Python Byte-compiled / Optimized Files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local Databases / Vector Stores
+chroma_data/
+
+# IDE / OS Specific Files
+.vscode/
+.idea/
+.DS_Store
