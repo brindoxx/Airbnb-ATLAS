@@ -1,8 +1,9 @@
+
 from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import List
-from app.graph import app_graph
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from app.graph import app_graph
 
 # Initialize the FastAPI application
 app = FastAPI(title="Airbnb Atlas API", description="Semantic Orchestration Engine")
@@ -18,7 +19,7 @@ app.add_middleware(
 
 # Define the data structure expected from the frontend
 class ChatRequest(BaseModel):
-    messages: List[str]
+    messages: list[str]
 
 class ChatResponse(BaseModel):
     response: str
@@ -35,7 +36,7 @@ def plan_trip_endpoint(request: ChatRequest):
     result = app_graph.invoke(initial_state)
     
     # Route the output based on whether the graph finished or paused for clarification
-    if "final_itinerary" in result and result["final_itinerary"]:
+    if result.get("final_itinerary"):
         # The trip was successfully generated
         return ChatResponse(
             response=result["final_itinerary"],
