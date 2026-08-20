@@ -82,10 +82,27 @@ def synthesizer_node(state: AgentState):
     """
     
     response = llm.invoke(prompt)
+    itinerary_text = extract_text(response.content)  # <-- normalize here
+    
     return {
-        "final_itinerary": response.content,
-        "messages": [f"Atlas: {response.content}"]
+        "final_itinerary": itinerary_text,
+        "messages": [f"Atlas: {itinerary_text}"]
     }
+
+def extract_text(content) -> str:
+    """Gemini/LangChain sometimes returns .content as a plain string,
+    sometimes as a list of content blocks. Normalize to plain text."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict) and "text" in block:
+                parts.append(block["text"])
+        return "".join(parts)
+    return str(content)
 
 # --- EDGE ROUTING LOGIC ---
 def route_after_supervisor(state: AgentState):
