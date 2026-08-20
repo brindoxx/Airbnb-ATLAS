@@ -12,3 +12,5 @@ langchain-community
 langchain-text-splitters
 langchain
 ddgs
+langchain-huggingface
+sentence-transformers

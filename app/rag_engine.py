@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from chromadb import EphemeralClient
 from dotenv import load_dotenv
 from langchain_community.tools import DuckDuckGoSearchResults
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 load_dotenv()
@@ -12,9 +12,10 @@ load_dotenv()
 # It lives only in RAM for the duration of the user's session.
 chroma_client = EphemeralClient()
 collection = chroma_client.get_or_create_collection(name="dynamic_travel_context")
-
-embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2",
-    output_dimensionality=768,)
+# Downloads a tiny, lightning-fast embedding model that runs locally
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+# embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2",
+#     output_dimensionality=768,)
 search_tool = DuckDuckGoSearchResults(num_results=3)
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
