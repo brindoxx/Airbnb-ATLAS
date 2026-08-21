@@ -14,3 +14,5 @@ langchain
 ddgs
 langchain-huggingface
 sentence-transformers
+datasets
+ragas
