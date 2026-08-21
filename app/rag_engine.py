@@ -41,7 +41,11 @@ def dynamic_research_and_index(destination_query: str):
     print(f"🌍 Agent is researching: {destination_query}...")
     
     # 1. Search the web
-    raw_search_results = search_tool.run(f"{destination_query} best places to visit and stay travel guide")
+    try:
+        raw_search_results = search_tool.run(f"{destination_query} best places to visit and stay travel guide")
+    except Exception as e:
+        print(f"⚠️ Web search failed (likely rate-limited): {e}")
+        raw_search_results = f"Web search failed. Rely on your internal knowledge to suggest an itinerary for: {destination_query}"
     
     # DuckDuckGo returns a string of snippets and links. We will extract the links.
     # (For production, you'd parse the URLs properly using regex or Tavily API)

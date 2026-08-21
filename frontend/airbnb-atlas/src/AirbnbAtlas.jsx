@@ -83,7 +83,7 @@ export default function AirbnbAtlas() {
     {
       role: "ai",
       text:
-        "Hi, I'm Atlas. Tell me where you'd like to go and the kind of trip you're after — I'll pull together a live, personalized itinerary.",
+        "Hi, I'm Atlas. Tell me where you'd like to go (or your current location), and your vibe, budget, and trip duration — I'll pull together a live, personalized itinerary.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -91,6 +91,7 @@ export default function AirbnbAtlas() {
   const [error, setError] = useState(null);
   const [itinerary, setItinerary] = useState(null); // raw string
   const [destinationLabel, setDestinationLabel] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -121,12 +122,19 @@ export default function AirbnbAtlas() {
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: historyRef.current }),
+        body: JSON.stringify({ 
+            messages: historyRef.current,
+            session_id: sessionId
+        }),
       });
 
       if (!res.ok) throw new Error(`Atlas Engine responded with ${res.status}`);
 
       const data = await res.json();
+      
+      if (!sessionId && data.session_id) {
+          setSessionId(data.session_id);
+      }
 
       // Record Atlas's reply in the transcript too, so the NEXT request
       // still carries the full back-and-forth for the Supervisor to reason over.
@@ -158,11 +166,14 @@ export default function AirbnbAtlas() {
 
   return (
     <div
-      className="h-screen w-full flex bg-[#FFF9F5] text-[#241C1A] overflow-hidden"
-      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+      className="h-screen w-full flex bg-gradient-animated text-[#241C1A] overflow-hidden"
+      style={{ 
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        backgroundImage: "linear-gradient(135deg, #FFF0E6 0%, #F5F7FA 50%, #FFE6E6 100%)"
+      }}
     >
       {/* ================= LEFT: CHAT SIDEBAR (30%) ================= */}
-      <aside className="w-full sm:w-[34%] lg:w-[30%] min-w-[320px] h-full flex flex-col border-r border-[#F0E4DC] bg-white">
+      <aside className="w-full sm:w-[34%] lg:w-[30%] min-w-[320px] h-full flex flex-col border-r border-white/20 bg-white/40 backdrop-blur-xl shadow-[4px_0_24px_rgba(0,0,0,0.03)] z-10">
         {/* Header */}
         <div className="px-6 pt-6 pb-5 border-b border-[#F5EAE2]">
           <div className="flex items-center gap-2.5">
@@ -266,12 +277,12 @@ export default function AirbnbAtlas() {
 function ChatBubble({ role, text }) {
   const isUser = role === "user";
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"} animate-slide-up-fade`}>
       <div
-        className={`max-w-[85%] px-4 py-2.5 text-[13.5px] leading-relaxed ${
+        className={`max-w-[85%] px-4 py-2.5 text-[13.5px] leading-relaxed shadow-sm ${
           isUser
             ? "bg-[#B0322B] text-white rounded-2xl rounded-br-sm"
-            : "bg-[#FBF3EE] text-[#241C1A] border border-[#F0E1D6] rounded-2xl rounded-bl-sm"
+            : "bg-white/90 backdrop-blur border border-white/50 text-[#241C1A] rounded-2xl rounded-bl-sm"
         }`}
       >
         {text}
@@ -301,20 +312,31 @@ function EmptyState() {
 }
 
 function ItineraryView({ destination, cards, raw }) {
+  const searchQuery = destination ? encodeURIComponent(destination) : "travel,landscape";
+  const heroImage = `https://loremflickr.com/800/400/${searchQuery}`;
+
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-10">
-        <div className="flex items-center gap-1.5 text-[#B0322B] text-[11px] font-semibold tracking-[0.14em] uppercase mb-2">
-          <Sparkles className="w-3.5 h-3.5" />
-          Generated itinerary
+    <div className="animate-slide-up-fade pb-10">
+      {/* Header with Image */}
+      <div className="mb-10 relative rounded-3xl overflow-hidden group shadow-xl">
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500 z-10" />
+        <img 
+          src={heroImage} 
+          alt={destination || "Trip Destination"} 
+          className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-700"
+        />
+        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-20">
+          <div className="flex items-center gap-1.5 text-white/90 text-[11px] font-semibold tracking-[0.14em] uppercase mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            Generated itinerary
+          </div>
+          <h1
+            className="text-[38px] leading-[1.1] text-white drop-shadow-md"
+            style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}
+          >
+            {destination || "Your trip"}
+          </h1>
         </div>
-        <h1
-          className="text-[34px] leading-[1.1] text-[#241C1A]"
-          style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}
-        >
-          {destination || "Your trip"}
-        </h1>
       </div>
 
       {/* Route line + day cards, or plain fallback if parsing found nothing structured */}
@@ -327,7 +349,7 @@ function ItineraryView({ destination, cards, raw }) {
                 <div className="absolute -left-8 top-5 w-[22px] h-[22px] rounded-full bg-white border-2 border-[#B0322B] flex items-center justify-center">
                   <MapPin className="w-3 h-3 text-[#B0322B]" strokeWidth={2.5} />
                 </div>
-                <div className="bg-white rounded-3xl border border-[#F0E1D6] shadow-[0_2px_16px_-4px_rgba(176,50,43,0.08)] px-6 py-5 hover:shadow-[0_6px_24px_-6px_rgba(176,50,43,0.14)] transition-shadow">
+                <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-white/40 shadow-[0_4px_20px_-4px_rgba(176,50,43,0.06)] px-6 py-5 hover:shadow-[0_8px_30px_-6px_rgba(176,50,43,0.12)] hover:-translate-y-1 transition-all duration-300">
                   <h3
                     className="text-[17px] mb-2.5 text-[#241C1A]"
                     style={{ fontFamily: "'Fraunces', serif", fontWeight: 600 }}

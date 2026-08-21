@@ -10,10 +10,13 @@ from app.rag_engine import dynamic_research_and_index, query_live_database
 
 # 1. Define the Expected Output Schema for the Supervisor
 class TripParameters(BaseModel):
-    destination: str | None = Field(None, description="The specific destination if mentioned.")
+    destination: str | None = Field(None, description="The specific destination if mentioned. Leave None if user is undecided.")
+    current_location: str | None = Field(None, description="The user's starting location, needed if destination is undecided.")
     vibe_or_interests: str | None = Field(None, description="The kind of vibe or activity the user wants.")
-    missing_critical_fields: list[str] = Field(default_factory=list, description="What is missing? (We need destination and vibe).")
-    is_ready_for_execution: bool = Field(False, description="True ONLY if both destination and vibe are present.")
+    budget: str | None = Field(None, description="The user's budget for the trip.")
+    number_of_days: int | None = Field(None, description="The number of days for the trip.")
+    missing_critical_fields: list[str] = Field(default_factory=list, description="Missing fields required for the scenario.")
+    is_ready_for_execution: bool = Field(False, description="True ONLY if we have enough parameters to plan a trip or suggest destinations.")
     clarification_question: str | None = Field(None, description="A natural question to ask if fields are missing.")
 
 # 2. Define the Central Graph State
@@ -36,8 +39,17 @@ def supervisor_node(state: AgentState):
     prompt = f"""
     You are the Airbnb Atlas Supervisor.
     Analyze the user's request: {chat_history}
-    We need a 'destination' and a 'vibe_or_interests' to plan a trip.
-    If anything is missing, set is_ready_for_execution to False and ask ONE friendly follow-up question.
+    
+    Your goal is to collect enough information to plan a trip.
+    
+    SCENARIO 1: User knows their destination.
+    We need: 'destination', 'vibe_or_interests', 'budget', and 'number_of_days'.
+    
+    SCENARIO 2: User DOES NOT know where to go.
+    We need: 'current_location', 'vibe_or_interests', 'budget', and 'number_of_days'.
+    
+    If anything is missing for the applicable scenario, set is_ready_for_execution to False and ask ONE friendly follow-up question to collect the missing data.
+    If all required data is collected, set is_ready_for_execution to True.
     """
     
     result = structured_evaluator.invoke(prompt)
@@ -49,36 +61,53 @@ def supervisor_node(state: AgentState):
             "messages": [f"Atlas: {result.clarification_question}"]
         }
         
-    print(f"Supervisor Decision: Ready to execute for {result.destination}!")
+    dest_str = result.destination if result.destination else "undecided destination"
+    print(f"Supervisor Decision: Ready to execute for {dest_str}!")
     return {"trip_params": result.model_dump()}
 
 # --- NODE 2: The JIT RAG Execution ---
 def dynamic_research_node(state: AgentState):
     print("\n--- 🌍 DYNAMIC RESEARCH NODE ---")
-    dest = state["trip_params"].get("destination", "")
+    dest = state["trip_params"].get("destination")
+    start_loc = state["trip_params"].get("current_location", "")
     vibe = state["trip_params"].get("vibe_or_interests", "")
+    budget = state["trip_params"].get("budget", "")
+    days = state["trip_params"].get("number_of_days", "")
+    
+    if dest:
+        search_query = f"{dest} {vibe} travel guide {days} days budget {budget}"
+    else:
+        search_query = f"best {vibe} travel destinations from {start_loc} budget {budget} for {days} days"
     
     # Trigger your real-time scraping engine!
-    dynamic_research_and_index(dest)
+    dynamic_research_and_index(search_query)
     
     # Query the newly built live DB
-    raw_context = query_live_database(vibe)
+    query = f"Provide options matching vibe: {vibe}, budget: {budget}, duration: {days} days."
+    raw_context = query_live_database(query)
     
-    return {"retrieved_context": "\n\n".join(raw_context)}
+    return {"retrieved_context": "\n\n".join(raw_context) if isinstance(raw_context, list) else raw_context}
 
 # --- NODE 3: The Synthesizer ---
 def synthesizer_node(state: AgentState):
     print("\n--- ✍️ SYNTHESIZER NODE ---")
     context = state.get("retrieved_context", "")
-    dest = state["trip_params"].get("destination", "")
+    dest = state["trip_params"].get("destination")
+    start_loc = state["trip_params"].get("current_location", "")
     
+    if dest:
+        system_task = f"Create a highly specific, engaging itinerary for {dest} based ONLY on this verified live internet data."
+    else:
+        system_task = f"Propose 2-3 great destination options from {start_loc} with high-level plans based ONLY on this verified live internet data."
+        
     prompt = f"""
     You are the Airbnb Atlas Copilot.
-    Create a highly specific, engaging itinerary for {dest} based ONLY on this verified live internet data:
+    {system_task}
     
+    Context:
     {context}
     
-    Ensure you highlight how the places match the user's vibe. Do not hallucinate amenities.
+    Ensure you highlight how the places match the user's vibe and budget. Do not hallucinate amenities or prices.
     """
     
     response = llm.invoke(prompt)
@@ -144,6 +173,6 @@ if __name__ == "__main__":
     print("\n" + "="*50 + "\n")
     
     print("Test 2: Complete Prompt (Should execute full pipeline)")
-    test_state_2 = {"messages": ["I want to go to Tirthan Valley, looking for riverside stays and trout fishing."]}
+    test_state_2 = {"messages": ["I want to go to Tirthan Valley, looking for riverside stays and trout fishing. My budget is $500 and I want to stay for 4 days."]}
     result_2 = app_graph.invoke(test_state_2)
-    print("\nFinal Output:\n", result_2["final_itinerary"])
+    print("\nFinal Output:\n", result_2.get("final_itinerary", result_2["messages"][-1]))
