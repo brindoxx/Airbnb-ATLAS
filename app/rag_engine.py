@@ -22,7 +22,10 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20
 def scrape_webpage(url: str) -> str:
     """Visits a URL and extracts the readable text."""
     try:
-        response = requests.get(url, timeout=5)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.content, 'html.parser')
         # Extract text from paragraphs to avoid HTML clutter
         paragraphs = soup.find_all('p')

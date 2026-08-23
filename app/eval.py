@@ -23,10 +23,9 @@ sys.modules["langchain_community.chat_models.vertexai"] = dummy_chat
 
 from datasets import Dataset
 from ragas import evaluate
+from ragas.run_config import RunConfig
 
-# Using the legacy metric singletons — these are the only ones that accept
-# LangChain LLMs (e.g. Gemini) directly. Deprecation warnings are suppressed above.
-from ragas.metrics import faithfulness, answer_relevancy, context_precision
+from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -37,13 +36,12 @@ from app.graph import app_graph
 
 load_dotenv()
 
-# ──────────────────────────────────────────────────
-# 2. Initialize the LLM-as-a-judge and embedder
-# ──────────────────────────────────────────────────
-# Using gemini-2.0-flash instead of gemini-3.5-flash-lite to avoid
-# the "Multiple candidates is not enabled" error on answer_relevancy.
-judge_llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
+# Using gemini-3.5-flash-lite for the judge (active, supported, and generous free-tier rate limits)
+judge_llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite", timeout=120, max_retries=5)
 embedder = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
+# RunConfig limits concurrency to 2 parallel workers to avoid overloading the API
+run_config = RunConfig(timeout=300, max_retries=5, max_workers=2)
 
 
 def run_evaluation():
@@ -86,9 +84,10 @@ def run_evaluation():
 
     eval_result = evaluate(
         dataset=dataset,
-        metrics=[faithfulness, answer_relevancy, context_precision],
+        metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
         llm=judge_llm,
         embeddings=embedder,
+        run_config=run_config,
     )
 
     print("\n--- Evaluation Results ---")
