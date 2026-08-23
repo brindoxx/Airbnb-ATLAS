@@ -1,12 +1,20 @@
+# ============================
 # Security / Environment Variables
+# ============================
 .env
+.env.local
+.env.*.local
+
+# ============================
+# Python — Backend
+# ============================
 
 # Virtual Environments
 venv/
 env/
 .venv/
 
-# Python Byte-compiled / Optimized Files
+# Byte-compiled / Optimized Files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -14,7 +22,44 @@ __pycache__/
 # Local Databases / Vector Stores
 chroma_data/
 
+# Packaging / distribution
+*.egg-info/
+build/
+dist/
+
+# ============================
+# Node / Vite — Frontend
+# ============================
+
+# Dependencies
+node_modules/
+
+# Build output
+frontend/airbnb-atlas/dist/
+dist-ssr/
+
+# Vite cache
+.vite/
+
+# Local env files (frontend)
+frontend/airbnb-atlas/.env
+frontend/airbnb-atlas/.env.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ============================
 # IDE / OS Specific Files
+# ============================
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
+
+# ============================
+# Personal / Interview Notes
+# ============================
+resume_points.txt

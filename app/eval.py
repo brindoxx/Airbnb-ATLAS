@@ -1,49 +1,99 @@
 import sys
+import os
 import types
+import warnings
+
+# ──────────────────────────────────────────────────
+# 1. Suppress all known harmless warnings up front
+# ──────────────────────────────────────────────────
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+
+# Ensure the parent directory is in the path so 'python app\eval.py' works
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --- QUICK FIX FOR RAGAS BUG ---
-# Ragas crashes looking for a deprecated VertexAI module. 
-# This injects a fake empty module so it successfully loads.
+# Ragas 0.4.x crashes looking for a deprecated VertexAI module.
+# This injects a fake empty module so Ragas loads without errors.
 dummy_chat = types.ModuleType("langchain_community.chat_models.vertexai")
 dummy_chat.ChatVertexAI = type("ChatVertexAI", (object,), {})
 sys.modules["langchain_community.chat_models.vertexai"] = dummy_chat
-# -------------------------------
+# ─────────────────────────────────
 
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics import faithfulness, answer_relevancy
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+
+# Using the legacy metric singletons — these are the only ones that accept
+# LangChain LLMs (e.g. Gemini) directly. Deprecation warnings are suppressed above.
+from ragas.metrics import faithfulness, answer_relevancy, context_precision
+
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_huggingface import HuggingFaceEmbeddings
 from dotenv import load_dotenv
 
+# Import our LangGraph orchestration
+from app.graph import app_graph
+
 load_dotenv()
 
-# Initialize the LLM-as-a-judge and embedder
-judge_llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite")
+# ──────────────────────────────────────────────────
+# 2. Initialize the LLM-as-a-judge and embedder
+# ──────────────────────────────────────────────────
+# Using gemini-2.0-flash instead of gemini-3.5-flash-lite to avoid
+# the "Multiple candidates is not enabled" error on answer_relevancy.
+judge_llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash")
 embedder = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
+
 def run_evaluation():
-    # 1. Define your ground truth test set
+    # ── Test Question ──
+    question = (
+        "I want to go to Tirthan Valley, looking for riverside stays "
+        "and trout fishing. My budget is $500 and I want to stay for 4 days."
+    )
+    ground_truth = (
+        "The user is looking for riverside stays in Tirthan Valley "
+        "with a budget of $500 for 4 days."
+    )
+
+    # ── Run the actual LangGraph RAG pipeline ──
+    print(f"Executing LangGraph pipeline for question: {question}")
+    state = {"messages": [question]}
+    result = app_graph.invoke(state)
+
+    generated_answer = result.get("final_itinerary", result["messages"][-1])
+    retrieved_context = result.get("retrieved_context", "")
+
+    print("\nPipeline executed successfully! Starting Evaluation...")
+
+    # ── Build the evaluation dataset ──
+    # Split context into individual retrieved chunks for precision calculation
+    context_chunks = [c.strip() for c in retrieved_context.split("\n\n") if c.strip()]
+    if not context_chunks:
+        context_chunks = [retrieved_context]
+
     data = {
-        "question": ["I want a quiet riverside stay in Tirthan Valley under ₹5000."],
-        "contexts": [["Tirthan Riverside Stay costs ₹4500. It is located directly on the riverbank offering quiet digital detox vibes."]],
-        "answer": ["I recommend the Tirthan Riverside Stay for ₹4500, which offers a quiet digital detox on the riverbank."],
-        "ground_truth": ["Tirthan Riverside Stay is a quiet option on the river for ₹4500."]
+        "question": [question],
+        "contexts": [context_chunks],
+        "answer": [generated_answer],
+        "ground_truth": [ground_truth],
     }
-    
     dataset = Dataset.from_dict(data)
 
-    # 2. Run the Ragas evaluation metrics
-    print("Running RAGAS Evaluation...")
-    result = evaluate(
+    # ── Run the RAGAS evaluation ──
+    print("Running RAGAS Evaluation on Live Output...\n")
+
+    eval_result = evaluate(
         dataset=dataset,
-        metrics=[faithfulness, answer_relevancy],
+        metrics=[faithfulness, answer_relevancy, context_precision],
         llm=judge_llm,
-        embeddings=embedder
+        embeddings=embedder,
     )
-    
-    print("\n--- 📊 Evaluation Results ---")
-    print(result)
+
+    print("\n--- Evaluation Results ---")
+    print(eval_result)
+
 
 if __name__ == "__main__":
     run_evaluation()
