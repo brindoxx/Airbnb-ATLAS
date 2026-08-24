@@ -3,6 +3,7 @@ from typing import Annotated, TypedDict
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, START, StateGraph
+from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel, Field
 
 from app.rag_engine import dynamic_research_and_index, query_live_database
@@ -18,6 +19,15 @@ class TripParameters(BaseModel):
     missing_critical_fields: list[str] = Field(default_factory=list, description="Missing fields required for the scenario.")
     is_ready_for_execution: bool = Field(False, description="True ONLY if we have enough parameters to plan a trip or suggest destinations.")
     clarification_question: str | None = Field(None, description="A natural question to ask if fields are missing.")
+    requires_new_research: bool = Field(True, description="Set to False ONLY if the user is asking to revise an existing itinerary without fundamentally changing the destination.")
+
+class ItineraryCard(BaseModel):
+    title: str = Field(description="The heading for this card (e.g., 'Trip Overview' or 'Day 1: Arrival').")
+    details: list[str] = Field(description="A highly detailed list of bullet points for this card. Each point should be a rich, descriptive paragraph. Explicitly include budget bifurcations for food, stays, and transport.")
+
+class ItineraryOutput(BaseModel):
+    chat_message: str = Field(description="A short, conversational 1-sentence message to the user acknowledging their request (e.g., 'Here is your updated 3-day itinerary for Ladakh!').")
+    itinerary_cards: list[ItineraryCard] = Field(description="The itinerary broken down into separate sections/cards. The first should always be an Overview.")
 
 # 2. Define the Central Graph State
 class AgentState(TypedDict):
@@ -50,6 +60,8 @@ def supervisor_node(state: AgentState):
     
     If anything is missing for the applicable scenario, set is_ready_for_execution to False and ask ONE friendly follow-up question to collect the missing data.
     If all required data is collected, set is_ready_for_execution to True.
+    
+    REVISIONS: If the user is asking to modify or revise an existing itinerary (e.g., "make it cheaper", "less days", "different hotel"), set requires_new_research to False, unless they are asking for a completely new destination.
     """
     
     result = structured_evaluator.invoke(prompt)
@@ -100,22 +112,31 @@ def synthesizer_node(state: AgentState):
     else:
         system_task = f"Propose 2-3 great destination options from {start_loc} with high-level plans based ONLY on this verified live internet data."
         
+    latest_user_msg = state["messages"][-1] if state["messages"] else "Create the itinerary."
+        
     prompt = f"""
     You are the Airbnb Atlas Copilot.
     {system_task}
     
+    The user's latest request/feedback is: "{latest_user_msg}"
+    
     Context:
     {context}
     
-    Ensure you highlight how the places match the user's vibe and budget. Do not hallucinate amenities or prices.
+    CRITICAL INSTRUCTIONS FOR DETAIL:
+    - DO NOT provide short or generic summaries.
+    - Each bullet point in your cards must be a rich, descriptive paragraph full of local flavor and specific recommendations.
+    - You MUST provide a clear, detailed bifurcation of the budget (breaking down estimated costs for stays, food, transport, and activities) in BOTH the Trip Overview and within the daily plans.
+    - Ensure you highlight exactly how the places match the user's specific vibe and budget. 
+    - Do not hallucinate amenities or prices; use realistic estimates based on the context or general knowledge.
     """
     
-    response = llm.invoke(prompt)
-    itinerary_text = extract_text(response.content)  # <-- normalize here
+    synthesizer_evaluator = llm.with_structured_output(ItineraryOutput)
+    response = synthesizer_evaluator.invoke(prompt)
     
     return {
-        "final_itinerary": itinerary_text,
-        "messages": [f"Atlas: {itinerary_text}"]
+        "final_itinerary": [card.model_dump() for card in response.itinerary_cards],
+        "messages": [f"Atlas: {response.chat_message}"]
     }
 
 def extract_text(content) -> str:
@@ -137,7 +158,10 @@ def extract_text(content) -> str:
 def route_after_supervisor(state: AgentState):
     params = state.get("trip_params", {})
     if params.get("is_ready_for_execution"):
-        return "dynamic_research_node"
+        if params.get("requires_new_research", True):
+            return "dynamic_research_node"
+        else:
+            return "synthesizer_node"
     return END # Stop the graph and wait for the user's reply
 
 # --- COMPILE THE GRAPH ---
@@ -155,24 +179,28 @@ workflow.add_conditional_edges(
     route_after_supervisor,
     {
         "dynamic_research_node": "dynamic_research_node",
+        "synthesizer_node": "synthesizer_node",
         END: END
     }
 )
 workflow.add_edge("dynamic_research_node", "synthesizer_node")
 workflow.add_edge("synthesizer_node", END)
 
-# Compile into an executable application
-app_graph = workflow.compile()
+# Compile into an executable application with MemorySaver
+memory = MemorySaver()
+app_graph = workflow.compile(checkpointer=memory)
 
 # --- QUICK TEST RUNNER ---
 if __name__ == "__main__":
-    print("Test 1: Vague Prompt (Should ask for clarification)")
-    test_state_1 = {"messages": ["I want to go on a trip to the mountains."]}
-    result_1 = app_graph.invoke(test_state_1)
+    config = {"configurable": {"thread_id": "test_thread_1"}}
+    print("Test 1: Complete Prompt (Should execute full pipeline)")
+    test_state_1 = {"messages": ["I want to go to Tirthan Valley, looking for riverside stays and trout fishing. My budget is $500 and I want to stay for 4 days."]}
+    result_1 = app_graph.invoke(test_state_1, config)
+    print("\nFinal Output 1:\n", result_1.get("final_itinerary", result_1["messages"][-1]))
     
     print("\n" + "="*50 + "\n")
     
-    print("Test 2: Complete Prompt (Should execute full pipeline)")
-    test_state_2 = {"messages": ["I want to go to Tirthan Valley, looking for riverside stays and trout fishing. My budget is $500 and I want to stay for 4 days."]}
-    result_2 = app_graph.invoke(test_state_2)
-    print("\nFinal Output:\n", result_2.get("final_itinerary", result_2["messages"][-1]))
+    print("Test 2: Revision Prompt (Should skip research and synthesize directly)")
+    test_state_2 = {"messages": ["Make the hotels a bit cheaper and under $300."]}
+    result_2 = app_graph.invoke(test_state_2, config)
+    print("\nFinal Output 2:\n", result_2.get("final_itinerary", result_2["messages"][-1]))

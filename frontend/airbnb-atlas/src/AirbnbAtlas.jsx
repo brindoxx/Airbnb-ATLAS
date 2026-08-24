@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Send,
   Loader2,
@@ -25,46 +27,7 @@ const API_URL = "http://127.0.0.1:8000/plan_trip";
 
 // ---------- helpers ----------
 
-// Turns the raw itinerary string returned by the backend into
-// structured "day" blocks so we can render postcard-style cards.
-function parseItinerary(raw) {
-  if (!raw) return [];
-  const normalized = raw.replace(/\r\n/g, "\n").trim();
-  const blocks = normalized.split(/\n\s*\n/).filter(Boolean);
-
-  const dayPattern = /^#{0,3}\s*\*{0,2}\s*(day\s*\d+|morning|afternoon|evening)[:\-\s]*/i;
-
-  const cards = [];
-  let current = null;
-
-  blocks.forEach((block) => {
-    const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
-    if (!lines.length) return;
-    const firstLine = lines[0];
-
-    if (dayPattern.test(firstLine) || cards.length === 0) {
-      if (current) cards.push(current);
-      const titleMatch = firstLine.match(dayPattern);
-      const title = titleMatch
-        ? firstLine.replace(/^#{0,3}\s*\*{0,2}\s*/, "").replace(/\*{0,2}\s*$/, "")
-        : "Trip Overview";
-      const bodyLines = titleMatch ? lines.slice(1) : lines;
-      current = { title, lines: bodyLines };
-    } else {
-      current.lines.push(...lines);
-    }
-  });
-  if (current) cards.push(current);
-
-  return cards.map((c) => ({
-    title: c.title,
-    bullets: c.lines
-      .join(" ")
-      .split(/(?<=[.!?])\s+(?=[A-Z•\-\*])|(?:^|\n)[\-\*•]\s*/)
-      .map((s) => s.replace(/^[\-\*•\s]+/, "").trim())
-      .filter((s) => s.length > 3),
-  }));
-}
+// The AI now returns structured JSON cards directly! No parsing needed.
 
 function TypingDots() {
   return (
@@ -144,10 +107,10 @@ export default function AirbnbAtlas() {
         setMessages((prev) => [...prev, { role: "ai", text: data.response }]);
       } else {
         setItinerary(data.response);
-        setDestinationLabel(text);
+        setDestinationLabel(data.destination || "Your Trip");
         setMessages((prev) => [
           ...prev,
-          { role: "ai", text: "I've generated your itinerary on the right! 🌍" },
+          { role: "ai", text: data.chat_message || "I've generated your itinerary on the right! 🌍" },
         ]);
       }
     } catch (err) {
@@ -162,7 +125,7 @@ export default function AirbnbAtlas() {
     }
   }
 
-  const cards = itinerary ? parseItinerary(itinerary) : [];
+  const cards = Array.isArray(itinerary) ? itinerary : [];
 
   return (
     <div
@@ -312,8 +275,31 @@ function EmptyState() {
 }
 
 function ItineraryView({ destination, cards, raw }) {
-  const searchQuery = destination ? encodeURIComponent(destination) : "travel,landscape";
-  const heroImage = `https://loremflickr.com/800/400/${searchQuery}`;
+  const [heroImage, setHeroImage] = useState("https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80");
+
+  useEffect(() => {
+    if (!destination) return;
+    
+    async function fetchImage() {
+      try {
+        const query = encodeURIComponent(destination);
+        // Use Wikipedia API to fetch an authentic image for the destination
+        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${query}&origin=*`);
+        const data = await res.json();
+        const pages = data.query?.pages;
+        if (pages) {
+          const firstPage = Object.values(pages)[0];
+          if (firstPage && firstPage.original && firstPage.original.source) {
+            setHeroImage(firstPage.original.source);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch image from Wikipedia", err);
+      }
+    }
+    fetchImage();
+  }, [destination]);
 
   return (
     <div className="animate-slide-up-fade pb-10">
@@ -324,6 +310,9 @@ function ItineraryView({ destination, cards, raw }) {
           src={heroImage} 
           alt={destination || "Trip Destination"} 
           className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-700"
+          onError={(e) => {
+            e.target.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80";
+          }}
         />
         <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-20">
           <div className="flex items-center gap-1.5 text-white/90 text-[11px] font-semibold tracking-[0.14em] uppercase mb-2">
@@ -357,13 +346,15 @@ function ItineraryView({ destination, cards, raw }) {
                     {card.title}
                   </h3>
                   <ul className="space-y-2">
-                    {card.bullets.map((b, j) => (
+                    {(card.details || []).map((b, j) => (
                       <li
                         key={j}
                         className="text-[13.5px] leading-relaxed text-[#4A3F3A] flex gap-2.5"
                       >
                         <span className="text-[#B0322B] mt-1.5 w-1 h-1 rounded-full bg-[#B0322B] shrink-0" />
-                        <span>{b}</span>
+                        <div className="prose prose-sm max-w-none prose-p:my-0">
+                           <ReactMarkdown remarkPlugins={[remarkGfm]}>{b}</ReactMarkdown>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -374,9 +365,9 @@ function ItineraryView({ destination, cards, raw }) {
         </div>
       ) : (
         <div className="bg-white rounded-3xl border border-[#F0E1D6] shadow-[0_2px_16px_-4px_rgba(176,50,43,0.08)] px-7 py-6">
-          <p className="text-[13.5px] leading-relaxed text-[#4A3F3A] whitespace-pre-line">
-            {raw}
-          </p>
+          <div className="prose prose-sm max-w-none text-[13.5px] leading-relaxed text-[#4A3F3A]">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{raw}</ReactMarkdown>
+          </div>
         </div>
       )}
 

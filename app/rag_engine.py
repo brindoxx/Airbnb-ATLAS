@@ -16,7 +16,7 @@ collection = chroma_client.get_or_create_collection(name="dynamic_travel_context
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 # embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2",
 #     output_dimensionality=768,)
-search_tool = DuckDuckGoSearchResults(num_results=3)
+search_tool = DuckDuckGoSearchResults(num_results=10)
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
 def scrape_webpage(url: str) -> str:
@@ -54,7 +54,7 @@ def dynamic_research_and_index(destination_query: str):
     # (For production, you'd parse the URLs properly using regex or Tavily API)
     import re
     urls = re.findall(r'(https?://[^\s]+)', raw_search_results)
-    urls = [url.strip("],") for url in urls][:3] # Grab top 3 links
+    urls = [url.strip("],") for url in urls][:10] # Grab top 10 links
     
     all_live_text = ""
     for url in urls:
