@@ -1,0 +1,106 @@
+{
+  "timestamp": "2026-09-25 16:44:52",
+  "total_scenarios_evaluated": 10,
+  "execution_mode": "corpus",
+  "judge": {
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite"
+  },
+  "timing": {
+    "pipeline_generation_seconds": 74.77,
+    "ragas_evaluation_seconds": 291.7,
+    "total_seconds": 366.47
+  },
+  "ragas_macro_averages": {
+    "faithfulness": 0.8323,
+    "context_precision": 0.725,
+    "context_recall": 0.275,
+    "faithfulness_pct": "83%",
+    "context_precision_pct": "72%",
+    "context_recall_pct": "28%"
+  },
+  "resume_ready_bullet": "Evaluated 10 golden travel-planning scenarios with RAGAS, achieving 83% faithfulness, 72% context precision, and 28% context recall.",
+  "latex_bullet": "\\item {Evaluated \\textbf{10 golden travel-planning scenarios} with \\textbf{RAGAS}, achieving \\textbf{83\\% faithfulness}, \\textbf{72\\% context precision}, and \\textbf{28\\% context recall} across multi-constraint itineraries.}",
+  "per_scenario_breakdown": [
+    {
+      "query_id": "TIRTHAN_01",
+      "category": "known_destination_budget",
+      "query": "I want to go to Tirthan Valley for trout fishing and riverside stays, 4 days, budget is $500.",
+      "faithfulness": 1.0,
+      "context_precision": 1.0,
+      "context_recall": 0.75
+    },
+    {
+      "query_id": "TIRTHAN_02_REV",
+      "category": "revision_budget_reduction",
+      "query": "Make the accommodations cheaper and under $300 for the entire trip.",
+      "faithfulness": 1.0,
+      "context_precision": 0.25,
+      "context_recall": 0.6667
+    },
+    {
+      "query_id": "GOA_01",
+      "category": "known_destination_relaxation",
+      "query": "Plan a 3-day quiet South Goa workation with beachside cafes and Wi-Fi under $400.",
+      "faithfulness": 0.3,
+      "context_precision": 1.0,
+      "context_recall": 0.3333
+    },
+    {
+      "query_id": "GOA_02_REV",
+      "category": "revision_activity_swap",
+      "query": "Add a heritage walk through the Latin Quarter of Panaji on Day 2.",
+      "faithfulness": 0.7143,
+      "context_precision": 1.0,
+      "context_recall": 0.3333
+    },
+    {
+      "query_id": "MANALI_01",
+      "category": "known_destination_adventure",
+      "query": "5-day adventurous trip to Old Manali with paragliding in Solang and cafe hopping, budget $600.",
+      "faithfulness": 1.0,
+      "context_precision": 1.0,
+      "context_recall": 0.3333
+    },
+    {
+      "query_id": "UNDECIDED_01",
+      "category": "undecided_destination",
+      "query": "I am in Bangalore and want a 2-day misty hill station getaway with coffee plantations for under $250.",
+      "faithfulness": 0.875,
+      "context_precision": 1.0,
+      "context_recall": 0.0
+    },
+    {
+      "query_id": "UDAIPUR_01",
+      "category": "known_destination_luxury",
+      "query": "Luxury 3-day royal heritage itinerary for Udaipur with lake-view dining, budget $1500.",
+      "faithfulness": 0.8,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    },
+    {
+      "query_id": "LADAKH_01",
+      "category": "known_destination_logistics",
+      "query": "6-day road trip in Ladakh focusing on Nubra Valley and Pangong Tso, budget $1000.",
+      "faithfulness": 1.0,
+      "context_precision": 1.0,
+      "context_recall": 0.0
+    },
+    {
+      "query_id": "MUNNAR_01",
+      "category": "known_destination_nature",
+      "query": "Relaxing 3 days in Munnar Kerala visiting tea gardens and Eravikulam National Park, budget $350.",
+      "faithfulness": 0.8333,
+      "context_precision": 0.0,
+      "context_recall": 0.0
+    },
+    {
+      "query_id": "PONDICHERRY_01",
+      "category": "known_destination_culture",
+      "query": "3-day French Quarter and Auroville cycling holiday in Pondicherry with budget $300.",
+      "faithfulness": 0.8,
+      "context_precision": 1.0,
+      "context_recall": 0.3333
+    }
+  ]
+}
