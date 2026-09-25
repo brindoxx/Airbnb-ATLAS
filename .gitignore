@@ -21,6 +21,8 @@ __pycache__/
 
 # Local Databases / Vector Stores
 chroma_data/
+data/*.db
+data/chroma_db/
 
 # Packaging / distribution
 *.egg-info/
@@ -59,7 +61,7 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
-# ============================
-# Personal / Interview Notes
-# ============================
 resume_points.txt
+resume_points2.txt
+resumepoints*.txt
+resume_points*.txt

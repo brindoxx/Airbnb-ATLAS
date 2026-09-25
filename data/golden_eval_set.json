@@ -1,0 +1,264 @@
+[
+  {
+    "query_id": "TIRTHAN_01",
+    "category": "known_destination_budget",
+    "query": "I want to go to Tirthan Valley for trout fishing and riverside stays, 4 days, budget is $500.",
+    "chat_history": [],
+    "expected_constraints": {
+      "destination": "Tirthan Valley",
+      "vibe_or_interests": "trout fishing and riverside stays",
+      "budget": "$500",
+      "number_of_days": 4
+    },
+    "ground_truth_facts": [
+      "Tirthan Valley is located in Himachal Pradesh near the Great Himalayan National Park.",
+      "Trout fishing in Tirthan River requires angling permits from the local fisheries department.",
+      "Riverside homestays and cottages are situated near Gushaini and Nagini villages.",
+      "Key attractions include Chhoie Waterfall, Jalori Pass, and Serolsar Lake trek."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "Tirthan Valley Travel Guide - Trout Streams & GHNP",
+        "domain": "discoverwithdheeraj.com",
+        "text": "Tirthan Valley in Himachal Pradesh is renowned for clear streams of the Tirthan River and trout fishing. Angling permits can be obtained from the Himachal Fisheries Department for ₹100-200. Riverside stays in Gushaini and Nagini offer rustic wooden rooms right along the riverbank."
+      },
+      {
+        "source_id": "Src-2",
+        "title": "Great Himalayan National Park & Serolsar Lake Itinerary",
+        "domain": "trekgo.in",
+        "text": "From Tirthan Valley, popular excursions include trekking to the Chhoie Waterfall, driving up to Jalori Pass at 3,120 meters, and hiking 5 km to the holy Serolsar Lake. Mid-range homestays cost ₹2,500 to ₹4,500 per night."
+      }
+    ]
+  },
+  {
+    "query_id": "TIRTHAN_02_REV",
+    "category": "revision_budget_reduction",
+    "query": "Make the accommodations cheaper and under $300 for the entire trip.",
+    "chat_history": [
+      "I want to go to Tirthan Valley for trout fishing and riverside stays, 4 days, budget is $500."
+    ],
+    "expected_constraints": {
+      "destination": "Tirthan Valley",
+      "vibe_or_interests": "trout fishing and riverside stays",
+      "budget": "under $300",
+      "number_of_days": 4
+    },
+    "ground_truth_facts": [
+      "Budget dorms and village homestays in Tirthan Valley cost around ₹800 to ₹1,500 per night.",
+      "Total 4-day accommodation cost can be kept well under $300 (₹25,000).",
+      "Local buses from Aut to Banjar/Gushaini provide affordable transport for under ₹100."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "Tirthan Valley on a Shoestring Budget",
+        "domain": "indiantravelhouse.com",
+        "text": "Budget travelers can stay in backpacker hostels in Jibhi or simple village homestays in Gushaini starting at ₹800 to ₹1,200 per night. Local HRTC buses run frequently from Aut tunnel to Banjar for ₹60, making local transit very cheap."
+      }
+    ]
+  },
+  {
+    "query_id": "GOA_01",
+    "category": "known_destination_relaxation",
+    "query": "Plan a 3-day quiet South Goa workation with beachside cafes and Wi-Fi under $400.",
+    "chat_history": [],
+    "expected_constraints": {
+      "destination": "South Goa",
+      "vibe_or_interests": "quiet workation with beachside cafes and Wi-Fi",
+      "budget": "$400",
+      "number_of_days": 3
+    },
+    "ground_truth_facts": [
+      "South Goa beaches like Palolem, Agonda, and Benaulim are peaceful and suitable for remote work.",
+      "Beachfront cafes in Palolem and Agonda offer reliable Wi-Fi and co-working setups.",
+      "Scooter rentals cost between ₹350 and ₹500 per day."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "South Goa Workation Guide - Palolem and Agonda",
+        "domain": "goa-tourism.com",
+        "text": "South Goa is the quiet antidote to North Goa's party scene. Agonda and Palolem offer fiber internet, quiet beach huts, and work-friendly cafes like Zest and Dropadi. Huts cost ₹2,000-4,000 per night."
+      }
+    ]
+  },
+  {
+    "query_id": "GOA_02_REV",
+    "category": "revision_activity_swap",
+    "query": "Add a heritage walk through the Latin Quarter of Panaji on Day 2.",
+    "chat_history": [
+      "Plan a 3-day quiet South Goa workation with beachside cafes and Wi-Fi under $400."
+    ],
+    "expected_constraints": {
+      "destination": "South Goa",
+      "vibe_or_interests": "quiet workation with Latin Quarter heritage walk",
+      "budget": "$400",
+      "number_of_days": 3
+    },
+    "ground_truth_facts": [
+      "Fontainhas is the historic Latin Quarter of Panaji with Portuguese colonial architecture.",
+      "Fontainhas is located approximately 35-40 km north of South Goa beaches.",
+      "Guided walking tours in Fontainhas take 1.5 to 2 hours."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-2",
+        "title": "Fontainhas Latin Quarter Walking Guide",
+        "domain": "lonelyplanet.com",
+        "text": "Fontainhas in Panaji features narrow alleys lined with colorful Portuguese villas, tiled nameplates, and traditional bakeries like Confeitaria 31 De Janeiro. Heritage walking tours cost around ₹500-1000 per person."
+      }
+    ]
+  },
+  {
+    "query_id": "MANALI_01",
+    "category": "known_destination_adventure",
+    "query": "5-day adventurous trip to Old Manali with paragliding in Solang and cafe hopping, budget $600.",
+    "chat_history": [],
+    "expected_constraints": {
+      "destination": "Old Manali",
+      "vibe_or_interests": "adventure, paragliding in Solang, cafe hopping",
+      "budget": "$600",
+      "number_of_days": 5
+    },
+    "ground_truth_facts": [
+      "Old Manali is situated across the Manalsu River with lively bohemian cafes like Dylan's and Cafe 1947.",
+      "Solang Valley is approximately 14 km from Manali, offering tandem paragliding and zorbing.",
+      "Tandem paragliding flights in Solang cost approximately ₹2,000 to ₹3,500 depending on flight duration."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "Old Manali Backpacking & Solang Adventure",
+        "domain": "tripoto.com",
+        "text": "Old Manali offers live music cafes and apple orchard guesthouses starting at ₹1,500/night. Solang Valley offers high-altitude paragliding (₹2,500 for a 15-minute joyride) and ropeway rides."
+      }
+    ]
+  },
+  {
+    "query_id": "UNDECIDED_01",
+    "category": "undecided_destination",
+    "query": "I am in Bangalore and want a 2-day misty hill station getaway with coffee plantations for under $250.",
+    "chat_history": [],
+    "expected_constraints": {
+      "current_location": "Bangalore",
+      "vibe_or_interests": "misty hill station getaway with coffee plantations",
+      "budget": "$250",
+      "number_of_days": 2
+    },
+    "ground_truth_facts": [
+      "Coorg (Kodagu) and Chikmagalur are the prime coffee plantation hill stations within 250 km of Bangalore.",
+      "Chikmagalur is around 4.5 hours drive from Bangalore via NH75.",
+      "Homestays within working coffee estates cost around ₹2,500 to ₹5,000 per night inclusive of plantation tours."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "Chikmagalur vs Coorg from Bangalore",
+        "domain": "karnatakatourism.org",
+        "text": "Both Chikmagalur and Coorg offer sprawling Arabica and Robusta coffee estates, waterfalls like Abbey and Hebbe, and misty peaks like Mullayanagiri. Estate homestays provide estate walks and fresh filter coffee for ₹3,000/night."
+      }
+    ]
+  },
+  {
+    "query_id": "UDAIPUR_01",
+    "category": "known_destination_luxury",
+    "query": "Luxury 3-day royal heritage itinerary for Udaipur with lake-view dining, budget $1500.",
+    "chat_history": [],
+    "expected_constraints": {
+      "destination": "Udaipur",
+      "vibe_or_interests": "royal heritage with lake-view dining",
+      "budget": "$1500",
+      "number_of_days": 3
+    },
+    "ground_truth_facts": [
+      "Lake Pichola is the central lake featuring heritage properties like Taj Lake Palace and Oberoi Udaivilas.",
+      "City Palace Udaipur is Rajasthan's largest palace complex, situated on the east bank of Lake Pichola.",
+      "Sunset boat rides on Lake Pichola include visits to Jagmandir Island Palace."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "Udaipur Luxury Heritage Guide",
+        "domain": "rajasthantourism.gov.in",
+        "text": "Udaipur, the City of Lakes, features iconic heritage palaces. Private motorboat charters on Lake Pichola cost ₹4,000-8,000. Rooftop dining at Ambrai or Upre overlooks the illuminated City Palace facade."
+      }
+    ]
+  },
+  {
+    "query_id": "LADAKH_01",
+    "category": "known_destination_logistics",
+    "query": "6-day road trip in Ladakh focusing on Nubra Valley and Pangong Tso, budget $1000.",
+    "chat_history": [],
+    "expected_constraints": {
+      "destination": "Ladakh",
+      "vibe_or_interests": "road trip focusing on Nubra Valley and Pangong Tso",
+      "budget": "$1000",
+      "number_of_days": 6
+    },
+    "ground_truth_facts": [
+      "Acclimatization in Leh (3,500m) for at least 24 to 48 hours is mandatory before crossing high passes.",
+      "Inner Line Permits (ILP) are required for non-locals visiting Nubra Valley and Pangong Lake.",
+      "Khardung La pass (5,359m) connects Leh to the Nubra Valley.",
+      "Pangong Tso is an endorheic lake sitting at 4,225m with camping cottages at Spangmik village."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "Ladakh Circuit Guide: Leh, Nubra, Pangong",
+        "domain": "devilonwheels.com",
+        "text": "Standard Ladakh 6-day itinerary requires Days 1-2 in Leh for altitude adaptation. Khardung La leads to Hunder's double-humped camel dunes. Direct route via Shyok River connects Nubra to Pangong Tso in 5 hours without returning to Leh. Inner Line Permits are booked via lahdclehpermit.in."
+      }
+    ]
+  },
+  {
+    "query_id": "MUNNAR_01",
+    "category": "known_destination_nature",
+    "query": "Relaxing 3 days in Munnar Kerala visiting tea gardens and Eravikulam National Park, budget $350.",
+    "chat_history": [],
+    "expected_constraints": {
+      "destination": "Munnar",
+      "vibe_or_interests": "relaxing tea gardens and Eravikulam National Park",
+      "budget": "$350",
+      "number_of_days": 3
+    },
+    "ground_truth_facts": [
+      "Munnar is Kerala's prime tea region at the confluence of three mountain streams in the Western Ghats.",
+      "Eravikulam National Park is home to the endangered Nilgiri Tahr and Anamudi peak.",
+      "Tea museum visits in KDHP Nullatanni estate showcase colonial orthodox tea manufacturing."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "Munnar Tea Hills Itinerary",
+        "domain": "keralatourism.org",
+        "text": "Eravikulam National Park tickets cost ₹200 for Indian nationals and ₹500 for foreign visitors, booked via forest department counters. Tea garden view resorts in Old Munnar or Chithirapuram average ₹2,500-4,000 per night."
+      }
+    ]
+  },
+  {
+    "query_id": "PONDICHERRY_01",
+    "category": "known_destination_culture",
+    "query": "3-day French Quarter and Auroville cycling holiday in Pondicherry with budget $300.",
+    "chat_history": [],
+    "expected_constraints": {
+      "destination": "Pondicherry",
+      "vibe_or_interests": "French Quarter and Auroville cycling holiday",
+      "budget": "$300",
+      "number_of_days": 3
+    },
+    "ground_truth_facts": [
+      "White Town (French Quarter) features mustard-yellow colonial houses, cafes, and clean promenades.",
+      "Auroville is an experimental township 12 km north of Pondicherry with the Matrimandir golden dome.",
+      "Bicycle rentals cost ₹100 to ₹150 per day in White Town."
+    ],
+    "snapshotted_sources": [
+      {
+        "source_id": "Src-1",
+        "title": "Pondicherry White Town & Auroville Guide",
+        "domain": "thetraveler.in",
+        "text": "Rent a vintage bicycle in White Town for ₹100/day. Auroville's Matrimandir viewing point requires free passes from the Visitor Centre. Bakeries like Baker Street and Cafe des Arts offer croissants and quiches for ₹200-400."
+      }
+    ]
+  }
+]

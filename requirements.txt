@@ -16,3 +16,4 @@ langchain-huggingface
 sentence-transformers
 datasets
 ragas
+langgraph-checkpoint-sqlite

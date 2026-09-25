@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-09-25 13:48:31",
+  "golden_set_size": 10,
+  "ir_retrieval_benchmark": {
+    "evaluated_queries": 10,
+    "baseline_bi_encoder": {
+      "recall@5": 0.5167,
+      "precision@5": 0.2200,
+      "ndcg@5": 0.9500
+    },
+    "two_tier_cross_encoder": {
+      "recall@5": 0.5167,
+      "precision@5": 0.2200,
+      "ndcg@5": 1.0000
+    },
+    "relative_improvements": {
+      "recall_gain_pct": 0.0,
+      "precision_gain_pct": 0.0,
+      "ndcg_gain_pct": 5.26
+    }
+  },
+  "pipeline_benchmark": {
+    "session_id": "bench_0677cee4",
+    "cold_request": {
+      "prompt": "I want to visit Tirthan Valley for trout fishing and riverside homestays, 4 days, budget is $500.",
+      "total_seconds": 60.48,
+      "timings_ms": {
+        "supervisor_ms": 1901.3,
+        "research_ms": 44443.9,
+        "rerank_ms": 1602.5,
+        "generation_ms": 7010.0,
+        "verification_ms": 5015.2,
+        "total_ms": 59972.9
+      },
+      "cards_count": 5,
+      "faithfulness": 0.8,
+      "citation_coverage": 1.0,
+      "citation_precision": 1.0,
+      "claims_verified": 5
+    },
+    "warm_revision": {
+      "prompt": "Make the accommodations cheaper and under $300 for the entire trip.",
+      "total_seconds": 27.76,
+      "timings_ms": {
+        "supervisor_ms": 17547.6,
+        "research_ms": 44443.9,
+        "rerank_ms": 1062.6,
+        "generation_ms": 4497.2,
+        "verification_ms": 4555.5,
+        "total_ms": 132079.7
+      },
+      "cards_count": 4,
+      "faithfulness": 0.8888,
+      "citation_coverage": 0.5714,
+      "citation_precision": 1.0,
+      "claims_verified": 9,
+      "speedup_factor": 2.18
+    }
+  }
+}
